@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>ShardFlow Chatroom</title>
+<title>ShardFlow ChitChatter</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -193,7 +193,7 @@
 <div id="chat-shell">
   <div id="chat-header">
     <div id="chat-title-block">
-      <div id="chat-title">ShardFlow Chatroom</div>
+      <div id="chat-title">ShardFlow ChitChatter</div>
       <div id="chat-subtitle">PLUGGABLE P2P TEXT CHANNEL</div>
     </div>
 
@@ -223,11 +223,13 @@
   </div>
 </div>
 
-<script src="shardflow.config.js"></script>
-<script src="shardflow.core.js"></script>
-<script src="shardflow.webrtc.js"></script>
-<script src="shardflow.beacon.js"></script>
-<script src="shardflow.api.js"></script>
+<!-- Load ShardFlowEngine from your hosted repo -->
+<script src="https://boardwalkclay1.github.io/ShardFlowEngine/shardflow.config.js"></script>
+<script src="https://boardwalkclay1.github.io/ShardFlowEngine/shardflow.core.js"></script>
+<script src="https://boardwalkclay1.github.io/ShardFlowEngine/shardflow.webrtc.js"></script>
+<script src="https://boardwalkclay1.github.io/ShardFlowEngine/shardflow.beacon.js"></script>
+<script src="https://boardwalkclay1.github.io/ShardFlowEngine/shardflow.api.js"></script>
+
 <script>
   const messagesEl = document.getElementById('messages');
   const peerListEl = document.getElementById('peer-list');
@@ -281,14 +283,14 @@
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
-  // ShardFlow setup
+  // Initialize ShardFlow for this chat app
   ShardFlow.init({
     appId: "ShardFlowChat",
-    appName: "ShardFlow Chatroom",
+    appName: "ShardFlow ChitChatter",
     namespace: "SHARDFLOW_CHAT",
     role: "client",
     beaconEndpoints: {
-      // You will wire these to your actual endpoints / JSON beacons
+      // TODO: replace these with your real beacon endpoints when you wire them
       offerUrl:       "https://example.com/chat-hub-offer.json",
       answerUrl:      "https://example.com/chat-hub-answers.json",
       hubOfferUrl:    "https://example.com/chat-hub-offer.json",
@@ -325,7 +327,7 @@
     try {
       await ShardFlow.startHub();
       setStatus("Hub ready (publish offer JSON)");
-      logLine("Hub mode ready. Make sure your beacon URLs can be written/read.");
+      logLine("Hub mode ready. Wire beacon endpoints when you're ready.");
     } catch (e) {
       setStatus("Hub error");
       logLine("Hub error: " + e.message);
@@ -356,7 +358,6 @@
       time: Date.now()
     };
     ShardFlow.broadcast(payload);
-    // Also render locally as "me"
     const selfId = ShardFlow.getState().selfId;
     addMessage({
       fromId: selfId,
