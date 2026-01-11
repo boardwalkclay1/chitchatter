@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>ShardFlow Chatroom</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #050218;
+    color: #f6f4ff;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  #chat-shell {
+    max-width: 720px;
+    margin: 10px auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 20px);
+    border-radius: 18px;
+    border: 1px solid rgba(210,196,255,0.3);
+    background:
+      radial-gradient(circle at 0 100%, rgba(140,110,255,0.35) 0, transparent 60%),
+      radial-gradient(circle at 100% 0, rgba(120,210,255,0.32) 0, transparent 60%),
+      #050218;
+    box-shadow: 0 26px 34px rgba(0,0,0,0.9);
+    overflow: hidden;
+  }
+  #chat-header {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background:
+      radial-gradient(circle at -20% 0%, rgba(200,160,255,0.5) 0, transparent 55%),
+      #05021a;
+  }
+  #chat-title-block {
+    display: flex;
+    flex-direction: column;
+  }
+  #chat-title {
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  #chat-subtitle {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #beb7ff;
+  }
+  #username-input {
+    margin-left: auto;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(5,4,30,0.9);
+    color: #f6f4ff;
+    min-width: 120px;
+  }
+  #status-pill {
+    margin-left: 8px;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(210,196,255,0.7);
+    background: rgba(12,8,44,0.95);
+  }
+
+  #chat-main {
+    flex: 1 1 auto;
+    display: flex;
+    min-height: 0;
+  }
+  #messages {
+    flex: 1 1 auto;
+    padding: 10px;
+    overflow-y: auto;
+    font-size: 13px;
+  }
+  .msg {
+    margin-bottom: 6px;
+    max-width: 80%;
+    padding: 6px 9px;
+    border-radius: 12px;
+    position: relative;
+    line-height: 1.4;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+  }
+  .msg-meta {
+    font-size: 10px;
+    opacity: 0.75;
+    margin-bottom: 2px;
+  }
+  .msg.me {
+    margin-left: auto;
+    background: rgba(132,114,255,0.9);
+    border: 1px solid rgba(220,210,255,0.9);
+    box-shadow: 0 0 14px rgba(140,120,255,0.9);
+  }
+  .msg.me .msg-meta {
+    text-align: right;
+  }
+  .msg.other {
+    margin-right: auto;
+    background: rgba(12,10,42,0.95);
+    border: 1px solid rgba(190,180,255,0.6);
+  }
+
+  #sidebar {
+    flex: 0 0 170px;
+    border-left: 1px solid rgba(255,255,255,0.07);
+    padding: 9px 8px;
+    font-size: 11px;
+    background: rgba(5,4,28,0.96);
+  }
+  #sidebar h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #c9c2ff;
+    margin-bottom: 4px;
+  }
+  #peer-list {
+    max-height: 120px;
+    overflow-y: auto;
+    margin-bottom: 8px;
+  }
+  .peer-item {
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  #log {
+    max-height: 130px;
+    overflow-y: auto;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    opacity: 0.8;
+  }
+  .log-line { margin-bottom: 2px; }
+
+  #chat-input-row {
+    flex: 0 0 auto;
+    padding: 8px 10px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    gap: 6px;
+    background: rgba(5,4,26,0.97);
+  }
+  #message-input {
+    flex: 1 1 auto;
+    font-size: 13px;
+    padding: 7px 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(9,8,38,0.96);
+    color: #f6f4ff;
+    outline: none;
+  }
+  button {
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(10,8,40,0.96);
+    color: #f6f4ff;
+    font-size: 12px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: rgba(136,112,255,0.95);
+    box-shadow: 0 0 14px rgba(148,120,255,0.85);
+  }
+  #connect-buttons {
+    display: flex;
+    gap: 6px;
+    margin-left: 10px;
+  }
+
+  @media (max-width: 720px) {
+    #sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="chat-shell">
+  <div id="chat-header">
+    <div id="chat-title-block">
+      <div id="chat-title">ShardFlow Chatroom</div>
+      <div id="chat-subtitle">PLUGGABLE P2P TEXT CHANNEL</div>
+    </div>
+
+    <input id="username-input" type="text" placeholder="Your name" />
+
+    <div id="connect-buttons">
+      <button id="btn-hub">Start Hub</button>
+      <button id="btn-client">Join Hub</button>
+    </div>
+
+    <div id="status-pill">Idle</div>
+  </div>
+
+  <div id="chat-main">
+    <div id="messages"></div>
+    <div id="sidebar">
+      <h3>Peers</h3>
+      <div id="peer-list"></div>
+      <h3>Log</h3>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <div id="chat-input-row">
+    <input id="message-input" type="text" placeholder="Type a message and press Enter…" />
+    <button id="btn-send">Send</button>
+  </div>
+</div>
+
+<script src="shardflow.config.js"></script>
+<script src="shardflow.core.js"></script>
+<script src="shardflow.webrtc.js"></script>
+script src="shardflow.beacon.js"></script>
+<script src="shardflow.api.js"></script>
+<script>
+  const messagesEl = document.getElementById('messages');
+  const peerListEl = document.getElementById('peer-list');
+  const logEl = document.getElementById('log');
+  const usernameInput = document.getElementById('username-input');
+  const statusPill = document.getElementById('status-pill');
+  const messageInput = document.getElementById('message-input');
+  const btnSend = document.getElementById('btn-send');
+  const btnHub = document.getElementById('btn-hub');
+  const btnClient = document.getElementById('btn-client');
+
+  function logLine(msg) {
+    const div = document.createElement('div');
+    div.className = 'log-line';
+    div.textContent = msg;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function setStatus(text) {
+    statusPill.textContent = text;
+  }
+
+  function renderPeers() {
+    const state = ShardFlow.getState();
+    peerListEl.innerHTML = '';
+    state.peers.forEach(id => {
+      const div = document.createElement('div');
+      div.className = 'peer-item';
+      div.textContent = id;
+      peerListEl.appendChild(div);
+    });
+  }
+
+  function addMessage({ fromId, fromName, text, time }, isMe) {
+    const container = document.createElement('div');
+    container.className = 'msg ' + (isMe ? 'me' : 'other');
+
+    const meta = document.createElement('div');
+    meta.className = 'msg-meta';
+    const who = fromName || fromId || 'Unknown';
+    const t = new Date(time).toLocaleTimeString();
+    meta.textContent = `${who} · ${t}`;
+
+    const body = document.createElement('div');
+    body.textContent = text;
+
+    container.appendChild(meta);
+    container.appendChild(body);
+    messagesEl.appendChild(container);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  // ShardFlow setup
+  ShardFlow.init({
+    appId: "ShardFlowChat",
+    appName: "ShardFlow Chatroom",
+    namespace: "SHARDFLOW_CHAT",
+    role: "client",
+    beaconEndpoints: {
+      // You will wire these to your actual endpoints / JSON beacons
+      offerUrl:       "https://example.com/chat-hub-offer.json",
+      answerUrl:      "https://example.com/chat-hub-answers.json",
+      hubOfferUrl:    "https://example.com/chat-hub-offer.json",
+      clientAnswerUrl:"https://example.com/chat-hub-answers.json"
+    }
+  });
+
+  ShardFlow.onMessage((payload, from) => {
+    if (!payload || payload.type !== "chat") return;
+    const selfId = ShardFlow.getState().selfId;
+    const isMe = (from === selfId);
+    addMessage({
+      fromId: from,
+      fromName: payload.name,
+      text: payload.text,
+      time: payload.time || Date.now()
+    }, isMe);
+  });
+
+  ShardFlow.onPeerConnected(() => {
+    renderPeers();
+    setStatus("Connected");
+  });
+  ShardFlow.onPeerDisconnected(() => {
+    renderPeers();
+  });
+  ShardFlow.onError((e) => {
+    logLine("Error: " + (e && e.message ? e.message : e));
+  });
+
+  btnHub.onclick = async () => {
+    logLine("Starting as hub...");
+    setStatus("Starting hub…");
+    try {
+      await ShardFlow.startHub();
+      setStatus("Hub ready (publish offer JSON)");
+      logLine("Hub mode ready. Make sure your beacon URLs can be written/read.");
+    } catch (e) {
+      setStatus("Hub error");
+      logLine("Hub error: " + e.message);
+    }
+  };
+
+  btnClient.onclick = async () => {
+    logLine("Connecting as client to hub...");
+    setStatus("Connecting…");
+    try {
+      await ShardFlow.connectToHub();
+      setStatus("Waiting for hub to finalize…");
+      logLine("Client handshake done; hub must now pick up your answer.");
+    } catch (e) {
+      setStatus("Client error");
+      logLine("Client error: " + e.message);
+    }
+  };
+
+  function sendMessage() {
+    const text = messageInput.value.trim();
+    if (!text) return;
+    const name = usernameInput.value.trim() || "Anonymous";
+    const payload = {
+      type: "chat",
+      name,
+      text,
+      time: Date.now()
+    };
+    ShardFlow.broadcast(payload);
+    // Also render locally as "me"
+    const selfId = ShardFlow.getState().selfId;
+    addMessage({
+      fromId: selfId,
+      fromName: name,
+      text,
+      time: payload.time
+    }, true);
+    messageInput.value = "";
+  }
+
+  btnSend.onclick = sendMessage;
+  messageInput.addEventListener('keydown', (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+</script>
+</body>
+</html>
